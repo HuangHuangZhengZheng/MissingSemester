@@ -1,8 +1,5 @@
-# Command Line Environment
-- job control
-- tmux
-- dotfiles
-- remote machines
+
+
 
 # Job Control
 
@@ -25,7 +22,7 @@ import signal, time
 def handler(signum, time):
     print("\nI got a SIGINT, but I am not stopping")
 
-signal.signal(signal.SIGINT, handler) # Register handler for SIGINT
+signal.signal(signal.SIGINT, handler)
 i = 0
 while True:
     time.sleep(.1)
@@ -46,24 +43,6 @@ I got a SIGINT, but I am not stopping
 
 While `SIGINT` and `SIGQUIT` are both usually associated with terminal related requests, a more generic signal for asking a process to exit gracefully is the `SIGTERM` signal.
 To send this signal we can use the [`kill`](https://www.man7.org/linux/man-pages/man1/kill.1.html) command, with the syntax `kill -TERM <PID>`.
-
-<hr style="border: 5px solid #003262;" />
-
-kill can also send other kinds of signals:
-```
-kill -TERM <PID>
-kill -STOP <PID>
-kill -CONT <PID>
-kill -KILL <PID>
-```
-
-<hr style="border: 1px solid #fdb515;" />
-
-
-
-
-
-
 
 ## Pausing and backgrounding processes
 
@@ -134,14 +113,14 @@ A special signal is `SIGKILL` since it cannot be captured by the process and it 
 You can learn more about these and other signals [here](https://en.wikipedia.org/wiki/Signal_(IPC)) or typing [`man signal`](https://www.man7.org/linux/man-pages/man7/signal.7.html) or `kill -l`.
 
 
-# Terminal Multiplexers (tmux)
+# Terminal Multiplexers【important】
 
 When using the command line interface you will often want to run more than one thing at once.
 For instance, you might want to run your editor and your program side by side.
 Although this can be achieved by opening new terminal windows, using a terminal multiplexer is a more versatile solution.
 
 Terminal multiplexers like [`tmux`](https://www.man7.org/linux/man-pages/man1/tmux.1.html) allow you to multiplex terminal windows using panes and tabs so you can interact with multiple shell sessions.
-
+Moreover, terminal multiplexers let you detach a current terminal session and reattach at some point later in time.
 This can make your workflow much better when working with remote machines since it avoids the need to use `nohup` and similar tricks.
 
 The most popular terminal multiplexer these days is [`tmux`](https://www.man7.org/linux/man-pages/man1/tmux.1.html). `tmux` is highly configurable and by using the associated keybindings you can create multiple tabs and panes and quickly navigate through them.
@@ -163,12 +142,12 @@ The most popular terminal multiplexer these days is [`tmux`](https://www.man7.or
     + `<C-b> w` List current windows
 
 - **Panes** - Like vim splits, panes let you have multiple shells in the same visual display.
-    + `<C-b> "` Split the current pane horizontally :heart:
-    + `<C-b> %` Split the current pane vertically :heart:
+    + `<C-b> "` Split the current pane horizontally
+    + `<C-b> %` Split the current pane vertically
     + `<C-b> <direction>` Move to the pane in the specified _direction_. Direction here means arrow keys.
     + `<C-b> z` Toggle zoom for the current pane
-    + `<C-b> [` Start scrollback. You can then press `<space>` to start a selection and `<enter>` to copy that selection. :yum:
-    + `<C-b> <space>` Cycle through pane arrangements. :yum:
+    + `<C-b> [` Start scrollback. You can then press `<space>` to start a selection and `<enter>` to copy that selection.
+    + `<C-b> <space>` Cycle through pane arrangements.
 
 For further reading,
 [here](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/) is a quick tutorial on `tmux` and [this](http://linuxcommand.org/lc3_adv_termmux.php) has a more detailed explanation that covers the original `screen` command. You might also want to familiarize yourself with [`screen`](https://www.man7.org/linux/man-pages/man1/screen.1.html), since it comes installed in most UNIX systems.
@@ -227,7 +206,7 @@ To make an alias persistent you need to include it in shell startup files, like 
 
 Many programs are configured using plain-text files known as _dotfiles_
 (because the file names begin with a `.`, e.g. `~/.vimrc`, so that they are
-hidden in the directory listing `ls` by default). sth like the register chart :thinking:
+hidden in the directory listing `ls` by default).
 
 Shells are one example of programs configured with such files. On startup, your shell will read many files to load its configuration.
 Depending on the shell, whether you are starting a login and/or interactive the entire process can be quite complex.
@@ -336,7 +315,7 @@ An often overlooked feature of `ssh` is the ability to run commands directly.
 It works with pipes, so `ssh foobar@server ls | grep PATTERN` will grep locally the remote output of `ls` and `ls | ssh foobar@server grep PATTERN` will grep remotely the local output of `ls`.
 
 
-## SSH Keys
+## SSH Keys【important】
 
 Key-based authentication exploits public-key cryptography to prove to the server that the client owns the secret private key without revealing the key. This way you do not need to reenter your password every time. Nevertheless, the private key (often `~/.ssh/id_rsa` and more recently `~/.ssh/id_ed25519`) is effectively your password, so treat it like so.
 
@@ -345,6 +324,8 @@ Key-based authentication exploits public-key cryptography to prove to the server
 To generate a pair you can run [`ssh-keygen`](https://www.man7.org/linux/man-pages/man1/ssh-keygen.1.html).
 ```bash
 ssh-keygen -a 100 -t ed25519 -f ~/.ssh/id_ed25519
+# or common one
+ssh-keygen -t rsa -b 4096
 ```
 You should choose a passphrase, to avoid someone who gets hold of your private key to access authorized servers. Use [`ssh-agent`](https://www.man7.org/linux/man-pages/man1/ssh-agent.1.html) or [`gpg-agent`](https://linux.die.net/man/1/gpg-agent) so you do not have to type your passphrase every time.
 
@@ -355,20 +336,38 @@ If you have ever configured pushing to GitHub using SSH keys, then you have prob
 `ssh` will look into `.ssh/authorized_keys` to determine which clients it should let in. To copy a public key over you can use:
 
 ```bash
-cat .ssh/id_ed25519.pub | ssh foobar@remote 'cat >> ~/.ssh/authorized_keys'
-```
-
-A simpler solution can be achieved with `ssh-copy-id` where available:
-
-```bash
 ssh-copy-id -i .ssh/id_ed25519 foobar@remote
+
+ssh-copy-id -i ~/.ssh/id_rsa.pub user@1xx.x68.1.x00 -p 2222
 ```
+
+in the remote machine:
+```bash
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+echo "你的公钥内容" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+in the local ssh config:
+```text
+Host myserver  # 自定义别名（可选）
+    HostName 服务器IP
+    User 用户名
+    Port 2222  # 你的SSH端口
+    IdentityFile ~/.ssh/id_rsa  # 指定私钥（可选）
+    IdentitiesOnly yes
+```
+
+
+
+
+
 
 ## Copying files over SSH
 
 There are many ways to copy files over ssh:
 
-- `ssh+tee`, the simplest is to use `ssh` command execution and STDIN input by doing `cat localfile | ssh remote_server tee serverfile`. Recall that [`tee`](https://www.man7.org/linux/man-pages/man1/tee.1.html) writes the output from STDIN into a file.
 - [`scp`](https://www.man7.org/linux/man-pages/man1/scp.1.html) when copying large amounts of files/directories, the secure copy `scp` command is more convenient since it can easily recurse over paths. The syntax is `scp path/to/local_file remote_host:path/to/remote_file`
 - [`rsync`](https://www.man7.org/linux/man-pages/man1/rsync.1.html) improves upon `scp` by detecting identical files in local and remote, and preventing copying them again. It also provides more fine grained control over symlinks, permissions and has extra features like the `--partial` flag that can resume from a previously interrupted copy. `rsync` has a similar syntax to `scp`.
 
@@ -379,6 +378,11 @@ In many scenarios you will run into software that listens to specific ports in t
 This is called _port forwarding_ and it
 comes in two flavors: Local Port Forwarding and Remote Port Forwarding (see the pictures for more details, credit of the pictures from [this StackOverflow post](https://unix.stackexchange.com/questions/115897/whats-ssh-port-forwarding-and-whats-the-difference-between-ssh-local-and-remot)).
 
+**Local Port Forwarding**
+![Local Port Forwarding](/static/media/images/local-port-forwarding.png)
+
+**Remote Port Forwarding**
+![Remote Port Forwarding](/static/media/images/remote-port-forwarding.png)
 
 The most common scenario is local port forwarding, where a service in the remote machine listens in a port and you want to link a port in your local machine to forward to the remote port. For example, if we execute  `jupyter notebook` in the remote server that listens to the port `8888`. Thus, to forward that to the local port `9999`, we would do `ssh -L 9999:localhost:8888 foobar@remote_server` and then navigate to `localhost:9999` in our local machine.
 
@@ -387,7 +391,7 @@ The most common scenario is local port forwarding, where a service in the remote
 
 We have covered many many arguments that we can pass. A tempting alternative is to create shell aliases that look like
 ```bash
-alias my_server="ssh -i ~/.id_ed25519 --port 2222 -L 9999:localhost:8888 foobar@remote_server
+alias my_server="ssh -i ~/.id_ed25519 --port 2222 -L 9999:localhost:8888 foobar@remote_server"
 ```
 
 However, there is a better alternative using `~/.ssh/config`.
@@ -417,11 +421,8 @@ Server side configuration is usually specified in `/etc/ssh/sshd_config`. Here y
 A common pain when connecting to a remote server are disconnections due to your computer shutting down, going to sleep, or changing networks. Moreover if one has a connection with significant lag using ssh can become quite frustrating. [Mosh](https://mosh.org/), the mobile shell, improves upon ssh, allowing roaming connections, intermittent connectivity and providing intelligent local echo.
 
 Sometimes it is convenient to mount a remote folder. [sshfs](https://github.com/libfuse/sshfs) can mount a folder on a remote server
-locally, and then you can use a local editor.
+locally, and then you can use a local editor.【important】
 
-
-<hr style="border: 5px solid #003262;" />
-<hr style="border: 1px solid #fdb515;" />
 
 # Shells & Frameworks
 
